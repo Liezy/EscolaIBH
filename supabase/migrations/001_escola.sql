@@ -237,11 +237,4 @@ grant execute on function public.generate_month(date),public.save_student(uuid,t
 
 insert into public.settings(location,starts_on,start_time,sunday_weeks)
 values ('Igreja Batista Horizonte (IBH)','2026-11-22','09:00',array[2,4]);
-insert into public.instruments(name) values ('Violão'),('Bateria');
-with staff as (
-  insert into public.teachers(name) values ('Eliézer'),('Samuel'),('Ivan'),('Héber'),('Lukinhas') returning id,name
-)
-insert into public.teacher_instruments(teacher_id,instrument_id)
-select staff.id,i.id from staff join public.instruments i
-on i.name=case when staff.name in ('Eliézer','Samuel','Ivan') then 'Violão' else 'Bateria' end;
 commit;

@@ -5,16 +5,30 @@ Aplicação interna de gestão da Escola de Música da Igreja Batista Horizonte.
 ## Configurar o Supabase
 
 1. Crie um projeto Supabase e mantenha a Data API habilitada para o schema `public`.
-2. No SQL Editor de um projeto novo, execute [001_escola.sql](supabase/migrations/001_escola.sql) uma vez. A migração cria o esquema, aplica RLS e cadastra o local, a data de início de 22/11/2026, o segundo e quarto domingo às 9h, Violão e Bateria e os cinco professores. A administração pode editar esses valores no sistema.
-3. Nas configurações de Auth, habilite o provedor de e-mail e desabilite **Allow new users to sign up** e **Allow anonymous sign-ins**. Crie as contas pelo painel **Authentication → Users**, com e-mail real, senha forte e confirmação quando apropriada. [Configuração do Supabase Auth](https://supabase.com/docs/guides/auth/general-configuration)
-4. Copie o UUID mostrado pelo painel e execute no SQL Editor como operador do projeto. Use `admin` para o administrador inicial e `teacher` para as contas de professores. Repita para cada usuário.
+2. Em um projeto novo, aplique os arquivos de supabase/migrations/ em ordem numérica. Em um banco existente, aplique apenas as migrações pendentes. A [007](supabase/migrations/007_acesso_exclusivo_equipe.sql) encerra o acesso de aluno e preserva os cadastros existentes.
+3. Em Authentication, mantenha **Allow new users to sign up** e **Allow anonymous sign-ins** desabilitados. Crie a primeira conta de administrador pelo painel e confirme seu e-mail antes de ativar o perfil. [Configuração do Supabase Auth](https://supabase.com/docs/guides/auth/general-configuration)
+4. Copie o UUID da primeira conta e crie seu perfil no SQL Editor como operador do projeto.
 
 ```sql
 insert into public.profiles (id, name, role)
 values ('UUID_COPIADO_DO_PAINEL', 'Nome completo', 'admin');
 ```
 
-5. Entre como administrador, abra **Administração → Professores**, edite cada professor e selecione a conta correspondente. O calendário aceita professores antes da vinculação. Para revogar o acesso ao sistema, desative o perfil no SQL Editor com `update public.profiles set active=false where id='UUID_DA_CONTA';`. Desativar o professor na interface impede novas atribuições e novos registros de sua autoria. A conta e o perfil de acesso são geridos pelo operador do Supabase.
+5. Para criar contas pela Administração, publique a função `create-teacher` pelo CLI autenticado. A função valida a sessão e exige um perfil ativo de administrador. Ela usa as chaves injetadas pelo Supabase e funciona com o app em localhost.
+
+```sh
+supabase link --project-ref SEU_PROJECT_REF
+supabase functions deploy create-teacher --no-verify-jwt
+```
+
+Pelo painel, publique [create-teacher](supabase/functions/create-teacher/index.ts) em **Edge Functions → Deploy a new function → Via Editor**. Substitua o código do modelo pelo conteúdo do arquivo e use o nome `create-teacher`. Nos detalhes da função, desative a verificação JWT legada. A própria função valida o token e confere a permissão no banco. [Publicação pelo painel](https://supabase.com/docs/guides/functions/quickstart-dashboard) · [Verificação JWT legada](https://supabase.com/kb/troubleshooting/edge-function-401-error-response)
+
+6. Em **Administração → Professores → Novo professor**, informe nome, e-mail, senha inicial e permissão e clique em **Cadastrar professor**. Confirme com a pessoa o endereço correto antes de cadastrá-la. Com o acesso ativo, ela pode entrar com as credenciais imediatamente. Para vincular uma conta existente, informe o e-mail e deixe a senha em branco.
+7. Para aproveitar um cadastro anterior, abra **Cadastros antigos sem conta** e vincule o e-mail ali. Para seu próprio vínculo, escolha **Administrador** e mantenha o acesso ativo. A recuperação pelo botão **Esqueci a senha** é opcional e requer configuração de e-mail e redirecionamento no Supabase. O cadastro e o login com senha funcionam sem SMTP.
+
+**Permissões.** Professores com acesso ativo podem criar, gerar e editar encontros, excluir encontros sem registro, gerenciar alunos e registrar as próprias aulas. Administradores também gerenciam professores, acessos, modalidades, configurações e registros de outros professores. Desativar um acesso no app bloqueia o perfil no banco e retira o professor das novas atribuições. Uma atribuição antiga permanece no histórico.
+
+Em **Administração → Cadastros antigos sem conta**, **Excluir cadastros sem uso** remove professores sem conta e sem encontros ou registros associados.
 
 ## Executar localmente
 
@@ -31,9 +45,10 @@ Preencha `.env.local` com a URL HTTPS do projeto em `VITE_SUPABASE_URL` e a chav
 ## Usar o sistema
 
 - **Início** mostra a data do próximo encontro, os professores escalados, a próxima aula pessoal e o último registro de cada modalidade ativa.
-- **Escalas** organiza os encontros por mês. Gere as datas, abra cada encontro e escolha o professor. Um encontro por modalidade e data. Cancelamentos preservam o calendário e liberam o horário do professor. O conflito é a coincidência de dia e horário inicial, pois o MVP não usa duração de aula.
+- **Escalas** organiza os encontros por mês. Gere as datas, abra cada encontro e escolha um professor ativo com conta vinculada e acesso ativo. As modalidades no cadastro do professor servem para consulta. Um encontro por modalidade e data. Cancelamentos preservam o calendário e liberam o horário do professor. O conflito é a coincidência de dia e horário inicial, pois o MVP não usa duração de aula.
 - **Registros** permite filtrar o histórico por modalidade. Ao abrir qualquer encontro, a tela consulta o registro da mesma modalidade com data imediatamente anterior que tenha conteúdo registrado. Salvar o registro após o início marca a aula como realizada.
 - **Alunos** permite cadastrar várias modalidades, cada uma com data de ingresso e situação próprias.
+- **Exclusões.** Professores e administradores podem excluir encontros sem registro e remover alunos e seus vínculos. A exclusão de registros de aula é reservada a administradores.
 - **Administração** permite gerenciar professores, vincular contas provisionadas, alterar modalidades e personalizar a frequência, o local e o horário padrão.
 
 ## Verificar
@@ -43,7 +58,7 @@ npm test
 npm run build
 ```
 
-Após aplicar a migração, execute [fluxos.sql](supabase/tests/fluxos.sql) em um projeto de desenvolvimento dedicado. O script usa uma transação com rollback. Verifique no navegador uma sessão de administrador e outra de professor para validar login, logout, autorização e consultas pela Data API.
+Após aplicar as migrações, execute [fluxos.sql](supabase/tests/fluxos.sql) em um projeto de desenvolvimento. O script usa uma transação com rollback. Verifique uma sessão de administrador e outra de professor no navegador.
 
 ## Publicar na Vercel
 

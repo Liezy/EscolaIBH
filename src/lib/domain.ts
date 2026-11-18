@@ -12,6 +12,14 @@ export function shiftMonth(month: string, offset: number) {
   const [year, index] = month.split('-').map(Number)
   return new Date(Date.UTC(year, index - 1 + offset, 1)).toISOString().slice(0, 7)
 }
+export function calendarDays(month: string) {
+  const first = new Date(month+'-01T00:00:00Z')
+  const count = Math.round((Date.parse(shiftMonth(month,1)+'-01T00:00:00Z')-first.getTime())/86_400_000)
+  return {
+    leading:(first.getUTCDay()+6)%7,
+    dates:Array.from({length:count},(_,index)=>month+'-'+String(index+1).padStart(2,'0')),
+  }
+}
 export function started(meeting: Meeting, now = schoolNow()) {
   return meeting.date < now.date || (meeting.date === now.date && meeting.start_time <= now.time)
 }

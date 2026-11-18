@@ -4,6 +4,17 @@ import { shiftMonth } from '../lib/domain'
 
 const url = import.meta.env.VITE_SUPABASE_URL
 const key = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY
+const callback = new URLSearchParams(location.hash.slice(1))
+function passwordCallbackUser() {
+  if (!['invite','recovery'].includes(callback.get('type') ?? '')) return null
+  const payload = callback.get('access_token')?.split('.')[1]
+  if (!payload) return null
+  try {
+    const {sub} = JSON.parse(atob(payload.replace(/-/g,'+').replace(/_/g,'/')))
+    return typeof sub==='string' ? sub : null
+  } catch { return null }
+}
+export const passwordCallback = passwordCallbackUser()
 export const db = url && key ? createClient(url, key) : null
 
 type Result = { data: unknown; error: { code?: string } | null }
@@ -17,9 +28,18 @@ export function message(error: unknown) {
   if (code === '23514' || code === '23502' || code === '22P02') return 'Confira os campos, a disponibilidade do professor e a situação do encontro.'
   if (code === '42501' || code === 'PGRST116') return 'A operação não está disponível para seu perfil ou o item mudou.'
   if (code === 'invalid_credentials') return 'E-mail ou senha incorretos.'
+  if (code === 'weak_password') return 'A senha não atende aos requisitos de segurança do projeto.'
+  if (code === 'email_not_confirmed') return 'Confirme seu e-mail antes de entrar.'
+  if (code === 'P1002') return 'Confira o e-mail da conta que deseja vincular.'
+  if (code === 'P1003') return 'Você precisa manter o próprio acesso de administrador ativo.'
+  if (code === 'P1004') return 'Vincule uma conta ativa ao professor antes de escalá-lo.'
+  if (code === 'P1008') return 'Peça à pessoa para confirmar o e-mail antes de ativar o acesso de equipe.'
+  if (code === '23503') return 'Este item ainda está vinculado a outro cadastro ou registro.'
+  if (code === 'P0002') return 'O item já foi removido ou mudou.'
   return 'Não foi possível concluir a operação. Tente novamente.'
 }
 export const profile = async (id: string) => read<Profile | null>(await db!.from('profiles').select('*').eq('id',id).maybeSingle())
+export const profiles = async () => read<Profile[]>(await db!.from('profiles').select('*'))
 export async function reference() {
   const [settings,instruments,teachers] = await Promise.all([
     db!.from('settings').select('*').single(),
@@ -42,18 +62,24 @@ export async function nextMeetings(date: string, time: string, teacher?: string)
   ])
   const next = read<Meeting[]>(first)[0]
   return {
-    day: next ? read<Meeting[]>(await db!.from('class_sessions').select('*').eq('date',next.date)
-      .neq('status','canceled').order('start_time')) : [],
+    day: next ? read<Meeting[]>(await upcoming().eq('date',next.date)) : [],
     mine: mine ? read<Meeting[]>(mine)[0] : undefined,
   }
 }
 const recordsQuery = () => db!.from('lesson_records').select('*,session:class_sessions!inner(*)')
-  .order('date',{ referencedTable:'session', ascending:false })
   .order('session(date)',{ascending:false})
+  .order('id')
 export async function history(instrument: string, page: number) {
   let query = recordsQuery()
   if (instrument) query = query.eq('session.instrument_id',instrument)
   return read<RecordEntry[]>(await query.range(page*20,page*20+20))
+}
+export async function sessionsToRecord(date: string, time: string, teacher: string | undefined, page: number) {
+  let query = db!.from('class_sessions').select('*,record:lesson_records(id)')
+    .is('record',null).not('teacher_id','is',null).neq('status','canceled')
+    .or('date.lt.'+date+',and(date.eq.'+date+',start_time.lte.'+time+')')
+  if (teacher) query = query.eq('teacher_id',teacher)
+  return read<Meeting[]>(await query.order('date',{ascending:false}).order('start_time',{ascending:false}).order('id').range(page*20,page*20+20))
 }
 export async function latest(instrument: string, before?: string) {
   let query = recordsQuery().eq('session.instrument_id',instrument)

@@ -1,6 +1,6 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
-import { mayRecord,schoolNow,shiftMonth,started } from '../src/lib/domain.ts'
+import { calendarDays,mayRecord,schoolNow,shiftMonth,started } from '../src/lib/domain.ts'
 import type { Meeting } from '../src/types.ts'
 
 test('a agenda usa o horário da escola quando UTC já mudou de dia', () => {
@@ -9,6 +9,13 @@ test('a agenda usa o horário da escola quando UTC já mudou de dia', () => {
 test('navegação mensal cruza o limite do ano', () => {
   assert.equal(shiftMonth('2026-12',1),'2027-01')
   assert.equal(shiftMonth('2027-01',-1),'2026-12')
+})
+test('calendário alinha a semana na segunda-feira e inclui 29 de fevereiro em anos bissextos', () => {
+  const leap = calendarDays('2028-02')
+  assert.equal(leap.leading,1)
+  assert.equal(leap.dates.length,29)
+  assert.equal(leap.dates.at(-1),'2028-02-29')
+  assert.equal(calendarDays('2026-11').leading,6)
 })
 const meeting: Meeting={id:'fixture',instrument_id:'violão',teacher_id:'samuel',date:'2026-11-22',start_time:'09:00:00',status:'planned'}
 test('o registro abre quando a aula começa', () => {
