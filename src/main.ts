@@ -1,4 +1,5 @@
 import type { Session } from '@supabase/supabase-js'
+import '@fontsource-variable/manrope'
 import schoolLogo from './assets/escola-alianca.jpg'
 import { action,esc,field,icon,input,link,val } from './components/ui'
 import type { Context } from './lib/context'
@@ -24,7 +25,7 @@ const notify = (text: string, failure = false) => {
 }
 const feedback = '<div class="alert alert-success alert-soft" id="notice" role="status"></div><div class="alert alert-error alert-soft" id="error" role="alert"></div>'
 const mark = `<img class="school-logo" src="${schoolLogo}" width="640" height="640" alt="Escola Aliança">`
-const mobileMark = `<span class="school-symbol" aria-hidden="true"><img src="${schoolLogo}" alt=""></span><strong>Escola Aliança</strong>`
+const brand = `<span class="school-symbol" aria-hidden="true"><img src="${schoolLogo}" alt=""></span><strong>Escola Aliança</strong>`
 
 function welcome(body: string) {
   app.innerHTML = `<main class="login"><section class="card login-card"><div class="brand-banner">${mark}</div><div class="card-body">${body}${feedback}</div></section></main>`
@@ -47,18 +48,30 @@ function setupPassword() {
   ${action('Salvar senha')}</form><form data-op="logout">${action('Sair','quiet')}</form>`)
 }
 function shell(ctx: Context) {
-  const page = route()[0] || 'inicio'
-  const active = page==='novo-registro' || route()[2]==='editar-registro' ? 'registros' : page.includes('encontro') ? 'escalas' : page==='editar-aluno' ? 'alunos'
+  const [page='inicio',,extra] = route()
+  const active = page==='novo-registro' || extra==='editar-registro' ? 'registros' : page.includes('encontro') ? 'escalas' : page==='editar-aluno' ? 'alunos'
     : ['editar-professor','editar-modalidade'].includes(page) ? 'administracao' : page
   const tabs = ctx.admin ? [...navigation,['administracao','Administração','settings'] as const] : navigation
-  app.innerHTML = `<div class="layout"><aside class="sidebar"><a class="brand" href="#inicio">${mark}</a>
-    <nav aria-label="Navegação principal"><ul class="menu">${tabs.map(([href,label,symbol])=>`<li><a ${href===active?'class="menu-active" aria-current="page"':''} href="#${href}">${icon(symbol)}<span>${label}</span></a></li>`).join('')}</ul></nav>
-    </aside><div class="workspace"><header class="navbar topbar"><a class="mobile-brand" href="#inicio">${mobileMark}</a>
-    <div class="topbar-actions"><span class="account">${esc(ctx.profile.name)}</span>
-    ${ctx.admin ? `<a class="btn btn-square btn-ghost md:hidden" href="#administracao" aria-label="Administração" ${active==='administracao'?'aria-current="page"':''}>${icon('settings')}</a>` : ''}
-    <form data-op="logout"><button class="btn btn-ghost btn-square md:w-auto md:px-3" aria-label="Sair" type="submit">${icon('logout')}<span class="hidden md:inline">Sair</span></button></form></div></header>
-    <main id="content" tabindex="-1">${feedback}<div id="view"></div></main></div>
-    <nav class="dock mobile-dock md:hidden" aria-label="Navegação principal">${navigation.map(([href,label,symbol])=>`<a ${href===active?'class="dock-active" aria-current="page"':''} href="#${href}">${icon(symbol)}<span class="dock-label">${label}</span></a>`).join('')}</nav></div>`
+  const key = JSON.stringify([ctx.profile.id,ctx.profile.name,ctx.admin])
+  if (!app.querySelector('.layout') || app.dataset.shellKey!==key) {
+    const initials = ctx.profile.name.trim().split(/\s+/).slice(0,2).map(word=>word[0]).join('').toUpperCase()
+    app.innerHTML = `<div class="layout"><header class="topbar"><div class="topbar-inner">
+      <a class="app-brand" href="#inicio">${brand}</a>
+      <nav class="desktop-nav" aria-label="Navegação principal">${tabs.map(([href,label,symbol])=>`<a data-nav="${href}" href="#${href}">${icon(symbol)}<span>${label}</span></a>`).join('')}</nav>
+      <div class="topbar-actions">
+        ${ctx.admin ? `<a class="btn btn-square btn-ghost mobile-admin" href="#administracao" data-nav="administracao" aria-label="Administração">${icon('settings')}</a>` : ''}
+        <span class="account" title="${esc(ctx.profile.name)}">${esc(initials)}</span>
+        <form data-op="logout"><button class="btn btn-ghost btn-square" aria-label="Sair" title="Sair" type="submit">${icon('logout')}</button></form>
+      </div></div></header>
+      <main id="content" tabindex="-1">${feedback}<div id="view"></div></main>
+      <nav class="mobile-dock" aria-label="Navegação principal">${navigation.map(([href,label,symbol])=>`<a data-nav="${href}" href="#${href}">${icon(symbol)}<span>${label}</span></a>`).join('')}</nav>
+    </div>`
+    app.dataset.shellKey=key
+  }
+  app.querySelectorAll<HTMLElement>('[data-nav]').forEach(item=>{
+    if (item.dataset.nav===(active || 'inicio')) item.setAttribute('aria-current','page')
+    else item.removeAttribute('aria-current')
+  })
 }
 
 async function pageContent(ctx: Context) {
@@ -86,6 +99,8 @@ async function pageContent(ctx: Context) {
 }
 async function render() {
   const id = ++renderId
+  const lastView = app.querySelector<HTMLElement>('#view')
+  if (lastView) lastView.inert=true
   if (!db) {
     welcome('<h1>Configuração necessária</h1><p>Configure o endereço e a chave publicável do Supabase para acessar a escola.</p>')
     return
@@ -108,16 +123,26 @@ async function render() {
     const ctx = {...refs,profile:member,admin:member.role==='admin',teacherId:refs.teachers.find(t=>t.profile_id===member.id && t.active)?.id}
     shell(ctx)
     const view = app.querySelector<HTMLElement>('#view')!
-    view.innerHTML = '<p class="loading-state" role="status"><span class="loading loading-spinner loading-sm" aria-hidden="true"></span>Carregando…</p>'
+    notify('')
+    notify('',true)
+    view.setAttribute('aria-busy','true')
+    view.innerHTML = '<div class="loading-state" role="status"><span class="loading loading-spinner loading-sm" aria-hidden="true"></span>Carregando…</div>'
+    view.inert=false
     const content = await pageContent(ctx)
     if (id!==renderId) return
-    view.innerHTML = content
+    view.innerHTML = '<div class="screen-enter">'+content+'</div>'
+    view.removeAttribute('aria-busy')
+    view.inert=false
     if (success) { notify(success); success='' }
   } catch (error) {
     if (id!==renderId) return
-    const view = app.querySelector('#view')
+    const view = app.querySelector<HTMLElement>('#view')
     const retry = '<h1>Não foi possível carregar</h1><p>'+message(error)+'</p><button class="btn btn-outline" type="button" data-retry>Tentar novamente</button>'
-    if (view) view.innerHTML = retry
+    if (view) {
+      view.innerHTML = retry
+      view.inert=false
+      view.removeAttribute('aria-busy')
+    }
     else welcome(retry+'<form data-op="logout">'+action('Sair','secondary')+'</form>')
   }
 }
@@ -149,7 +174,10 @@ app.addEventListener('submit', async event => {
       !confirm('Remover os vínculos com as modalidades desmarcadas?')) return
   const button = form.querySelector<HTMLButtonElement>('button[type="submit"]')
   form.dataset.busy='true'
-  if (button) button.disabled=true
+  if (button) {
+    button.disabled=true
+    button.insertAdjacentHTML('afterbegin','<span class="loading loading-spinner loading-sm submit-spinner" aria-hidden="true"></span>')
+  }
   form.setAttribute('aria-busy','true')
   notify('',true)
   notify('')
@@ -236,7 +264,10 @@ app.addEventListener('submit', async event => {
   } finally {
     delete form.dataset.busy
     form.removeAttribute('aria-busy')
-    if (button) button.disabled=false
+    if (button) {
+      button.disabled=false
+      button.querySelector('.submit-spinner')?.remove()
+    }
   }
 })
 window.addEventListener('hashchange',()=>{ void render(); window.scrollTo(0,0) })

@@ -30,15 +30,22 @@ export async function dashboard(ctx: Context) {
   const next = upcoming.day[0]
   return heading('Início')+`
     <div class="dashboard-grid">
-      ${ctx.teacherId || !ctx.admin ? `<section class="card"><h2>Minha próxima aula</h2>
-      ${upcoming.mine ? `<p><strong>${title(ctx,upcoming.mine)}</strong> · ${shortDate(upcoming.mine.date)} às ${time(upcoming.mine.start_time)}</p>${link(sessionLink(upcoming.mine),'Preparar aula','primary')}`
+      <section class="feature-card">
+        <div class="feature-header">
+          <h2>${icon('calendar')} Próximo encontro</h2>
+          ${next ? `<strong class="feature-date">${formatDate(next.date,{day:'numeric',month:'long'})}</strong>
+            <p>${formatDate(next.date,{weekday:'long'})} · ${esc(ctx.settings.location)}</p>`
+            : '<strong class="feature-date is-empty">Nenhum encontro agendado</strong>'}
+          ${link('escalas','Ver escala','quiet')}
+        </div>
+        ${next ? `<div class="list feature-list">${upcoming.day.map(item=>meetingRow(ctx,item)).join('')}</div>` : ''}
+      </section>
+      ${ctx.teacherId || !ctx.admin ? `<section class="card personal-card"><div class="section-heading">${icon('clock')}<h2>Minha próxima aula</h2></div>
+      ${upcoming.mine ? `<strong class="personal-title">${title(ctx,upcoming.mine)}</strong>
+        <p class="meta">${shortDate(upcoming.mine.date)} às ${time(upcoming.mine.start_time)}</p>${link(sessionLink(upcoming.mine),'Preparar aula','primary')}`
         : '<p class="muted">Você ainda não tem aulas na escala.</p>'}</section>` : ''}
-      <section class="card"><h2>Próximo encontro</h2>
-      ${next ? `<p><strong>${formatDate(next.date,{weekday:'long',day:'numeric',month:'long'})}</strong></p>
-        <p class="meta">${esc(ctx.settings.location)}</p><div class="list">${upcoming.day.map(item=>meetingRow(ctx,item)).join('')}</div>`
-        : `<p class="muted">Nenhum encontro agendado.</p>${link('escalas','Ver escala','quiet')}`}</section>
     </div>
-    <section class="section"><h2>Últimos registros</h2><div class="list">${records.map(({instrument,record})=>record ?
+    <section class="section"><div class="card-top section-heading"><h2>Últimos registros</h2>${link('registros','Ver registros','quiet')}</div><div class="list">${records.map(({instrument,record})=>record ?
       `<a class="list-row" href="#${sessionLink(record.session)}">${instrumentIcon(instrument.name)}<span class="row-copy"><strong>${esc(instrument.name)}</strong><small>${shortDate(record.session.date)} · ${esc(teacherName(ctx,record.teacher_id))}</small><span class="snippet">${esc(record.content)}</span></span></a>`
       : `<div class="list-row">${instrumentIcon(instrument.name)}<span class="row-copy"><strong>${esc(instrument.name)}</strong><small>Sem registros</small></span></div>`).join('') || empty('Sem modalidades ativas','')}</div></section>`
 }
@@ -71,7 +78,7 @@ export async function schedule(ctx: Context, month: string, day: string) {
           ${dates.map(date=>{
             const count = groups.get(date)?.length ?? 0
             const label = formatDate(date,{weekday:'long',day:'numeric',month:'long'})+(count ? `, ${count} ${count===1?'encontro':'encontros'}` : '')
-            return `<a class="btn calendar-day min-w-0 px-0 whitespace-nowrap ${date===selected?'btn-primary':'btn-ghost'} ${date===today?'calendar-today':''}"
+            return `<a class="btn calendar-day min-w-0 px-0 whitespace-nowrap ${date===selected?'btn-primary':'btn-ghost'} ${date===today?'calendar-today':''} ${count?'has-meeting':''}"
               href="#escalas/${month}/${date}" ${date===selected?'aria-current="true"':''} aria-label="${esc(label)}">
               <span>${Number(date.slice(-2))}</span>${count ? '<span class="calendar-dot" aria-hidden="true"></span>' : ''}</a>`
           }).join('')}
