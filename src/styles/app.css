@@ -1,0 +1,105 @@
+@import "tailwindcss";
+
+@theme {
+  --color-forest: #17392f;
+  --color-paper: #f4f6f3;
+}
+@layer base {
+  :root { color-scheme: light; }
+  body { @apply bg-paper text-[#172923] antialiased; font-family: "Segoe UI", system-ui, sans-serif; }
+  h1, h2, h3 { @apply font-semibold tracking-tight; overflow-wrap: anywhere; }
+  h1 { @apply text-3xl sm:text-4xl; }
+  h2 { @apply text-xl; }
+  h3 { @apply text-lg; }
+  :focus-visible { outline: 3px solid #20816a; outline-offset: 3px; }
+  button:not(:disabled), select:not(:disabled) { cursor: pointer; }
+  [hidden] { display: none !important; }
+}
+@layer components {
+  .icon { @apply inline-flex shrink-0 items-center justify-center; }
+  .icon svg { width: 1.15em; height: 1.15em; }
+  .layout { @apply min-h-screen md:grid md:grid-cols-[15rem_minmax(0,1fr)]; }
+  aside { @apply md:sticky md:top-0 md:h-screen md:bg-forest md:px-4 md:py-7 md:text-white; }
+  .brand, .mobile-brand { @apply flex items-center gap-3 leading-tight; }
+  .brand small, .mobile-brand small { @apply block text-xs opacity-85; }
+  .brand-icon { @apply grid size-10 shrink-0 place-items-center rounded-xl bg-[#dcf5e8] text-xl text-forest; }
+  aside .brand { @apply mb-10 hidden px-2 md:flex; }
+  nav { @apply fixed inset-x-0 bottom-0 z-10 flex justify-around border-t border-[#dce5df] bg-white px-1 md:static md:flex-col md:gap-1 md:border-0 md:bg-transparent md:p-0; padding-bottom: env(safe-area-inset-bottom); }
+  nav a { @apply flex min-h-14 min-w-0 flex-1 flex-col items-center justify-center gap-1 rounded-lg px-1 py-2 text-[0.72rem] font-medium text-[#40574e] md:flex-row md:justify-start md:gap-3 md:px-3 md:text-sm md:text-[#e3f0e9]; }
+  nav a[aria-current], nav a:hover { @apply bg-[#e0efe6] text-forest md:bg-[#315347] md:text-white; }
+  nav .icon { font-size: 1.08rem; }
+  .topbar { @apply flex min-h-17 flex-wrap items-center justify-between gap-2 border-b border-[#dce5df] bg-white px-4 py-2 md:justify-end md:px-8; }
+  .mobile-brand { @apply md:hidden; }
+  .account { @apply hidden font-medium md:inline; }
+  main#content { @apply mx-auto max-w-6xl px-4 pt-6 pb-24 md:px-8 md:pt-9 md:pb-10; }
+  .page-heading { @apply mb-6 flex flex-wrap items-end justify-between gap-4; }
+  #view > .button + .page-heading { @apply mt-5; }
+  .page-heading p, .muted, .meta { @apply mt-1 text-[#50665b]; }
+  .meta { @apply text-sm; }
+  .page-heading + .card, .page-heading + .cards { @apply mt-2; }
+  .card { @apply min-w-0 rounded-2xl border border-[#dce5df] bg-white p-5 shadow-[0_2px_4px_#15352708] sm:p-6; overflow-wrap: anywhere; }
+  .card p { @apply mt-2; }
+  .card .button { @apply mt-4; }
+  .card .fields .button { @apply mt-0; }
+  .cards { @apply grid gap-3 sm:grid-cols-2 xl:grid-cols-3; }
+  .dashboard-grid { @apply grid gap-4 lg:grid-cols-[1.6fr_1fr]; }
+  .section { @apply mt-7; }
+  .section > h2, .section > .card-top { @apply mb-3; }
+  .featured { @apply bg-forest text-white; }
+  .featured h2 { @apply mt-3 text-3xl sm:text-4xl; }
+  .featured p { @apply text-[#d8ebdf]; }
+  .section-label { @apply flex items-center gap-2 text-sm font-semibold; }
+  .featured .section-label { @apply text-[#cce9d8]; }
+  .featured-lessons { @apply mt-5 grid gap-2 sm:grid-cols-2; }
+  .featured-lessons a { @apply flex items-center gap-3 rounded-lg bg-[#305346] p-3 hover:bg-[#3b6353]; }
+  .featured-lessons small { @apply block text-sm text-[#e3f0e9]; }
+  .next-card h2 { @apply mt-3; }
+  .card-top, .meeting-meta { @apply flex flex-wrap items-center justify-between gap-2; }
+  .quick, .toolbar, .month-control, .pager, .checks { @apply flex flex-wrap items-end gap-3; }
+  .month-control { @apply items-center font-semibold capitalize; }
+  .toolbar { @apply mb-5 justify-between rounded-xl border border-[#dce5df] bg-white p-3; }
+  .toolbar .field { @apply min-w-0 flex-1 sm:max-w-80; }
+  .pager { @apply mt-4; }
+  .button { @apply inline-flex min-h-11 max-w-full items-center justify-center gap-2 rounded-lg border border-transparent px-3.5 py-2 text-center text-sm font-semibold; }
+  .primary { @apply bg-forest text-white hover:bg-[#295849]; }
+  .secondary { @apply border-[#d5e2d9] bg-white text-forest hover:bg-[#eaf3ed]; }
+  .light { @apply bg-[#def3e6] text-forest hover:bg-white; }
+  .button:disabled { @apply cursor-wait opacity-60; }
+  .badge { @apply inline-flex rounded-full bg-[#edf0ee] px-2.5 py-1 text-xs font-semibold text-[#374f43]; }
+  .badge.active, .badge.completed, .badge.confirmed { @apply bg-[#daf1e4] text-[#245b43]; }
+  .badge.planned, .badge.invited { @apply bg-[#f3edda] text-[#624b17]; }
+  .badge.canceled { @apply bg-[#f8e7e4] text-[#882f28]; }
+  .empty { @apply flex min-h-36 flex-col items-center justify-center gap-2 rounded-2xl border border-dashed border-[#b9cbc0] bg-white p-5 text-center; }
+  .empty p { @apply text-[#50665b]; }
+  .continuation { @apply border-[#b4d4c1] bg-[#edf6ef]; }
+  .record-text { @apply mt-3 grid gap-1; }
+  .record-text dt { @apply mt-2 text-sm font-semibold; }
+  .record-text dd, .notes { white-space: pre-wrap; }
+  .snippet { @apply line-clamp-3; }
+  .fields { @apply grid gap-4; }
+  h2 + .fields { @apply mt-4; }
+  .field { @apply grid min-w-0 gap-1.5; }
+  .field > span:first-child, legend { @apply text-sm font-semibold; }
+  legend { @apply mb-2; }
+  .form-grid { @apply grid gap-4 sm:grid-cols-2; }
+  .field input, .field textarea, .field select { @apply min-h-11 w-full min-w-0 rounded-lg border border-[#b8cbbf] bg-white px-3 py-2 text-base; }
+  .field textarea { @apply resize-y; }
+  .select { @apply relative block; }
+  .select select { @apply appearance-none pr-10; }
+  .select > .icon { @apply pointer-events-none absolute inset-y-0 right-3; }
+  .check { @apply inline-flex min-h-11 items-center gap-2; }
+  .check input { @apply size-4 accent-[#17392f]; }
+  .enrollment-editor { @apply rounded-lg border border-[#dce5df] px-3 pb-1; }
+  .enrollment-editor .form-grid { @apply pb-3; }
+  .enrollment-list { @apply mt-3 grid gap-2; }
+  .enrollment-list li { @apply flex flex-wrap items-center justify-between gap-2 border-t border-[#dce5df] pt-2; }
+  .enrollment-list small { @apply block text-sm text-[#50665b]; }
+  .login { @apply grid min-h-dvh place-items-center p-4; background: radial-gradient(ellipse at 15% 15%, #d4e9db, transparent 65%); }
+  .login > .card { @apply w-full max-w-md; }
+  .login h1 { @apply mt-7 text-3xl; }
+  .login .fields { @apply mt-5; }
+  #notice:not(:empty), #error:not(:empty) { @apply mb-4 rounded-lg px-3 py-2; }
+  .login #notice:not(:empty), .login #error:not(:empty) { @apply mt-4 mb-0; }
+  #notice:not(:empty) { @apply bg-[#daf1e4] text-[#245b43]; }
+  #error:not(:empty) { @apply bg-[#f8e7e4] text-[#882f28]; }
+}
