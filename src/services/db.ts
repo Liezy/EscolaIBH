@@ -24,6 +24,7 @@ export function read<T>(result: Result): T {
 }
 export function message(error: unknown) {
   const code = (error as { code?: string } | null)?.code
+  if (code === 'schedule_schema_missing') return 'A lista de professores da escala ainda não está disponível no Supabase. Confira a migração 008 e recarregue a página.'
   if (code === '23505') return 'Já existe um encontro nessa data, um vínculo ou um horário reservado para esse professor.'
   if (code === '23514' || code === '23502' || code === '22P02') return 'Confira os campos, a disponibilidade do professor e a situação do encontro.'
   if (code === '42501' || code === 'PGRST116') return 'A operação não está disponível para seu perfil ou o item mudou.'
@@ -37,6 +38,11 @@ export function message(error: unknown) {
   if (code === '23503') return 'Este item ainda está vinculado a outro cadastro ou registro.'
   if (code === 'P0002') return 'O item já foi removido ou mudou.'
   return 'Não foi possível concluir a operação. Tente novamente.'
+}
+export async function availableTeacherIds() {
+  const result = await db!.rpc('available_teacher_ids')
+  if (result.status === 404 && result.error) throw {code:'schedule_schema_missing'}
+  return read<string[]>(result)
 }
 export const profile = async (id: string) => read<Profile | null>(await db!.from('profiles').select('*').eq('id',id).maybeSingle())
 export const profiles = async () => read<Profile[]>(await db!.from('profiles').select('*'))

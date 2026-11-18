@@ -1,7 +1,7 @@
 import { action,badge,deleteForm,empty,esc,field,formatDate,heading,icon,input,instrumentFilter,instrumentIcon,link,options,pager,select,shortDate,statuses,textarea,time,val } from '../components/ui'
 import { instrumentName,teacherName,type Context } from '../lib/context'
 import { calendarDays,mayRecord,schoolNow,shiftMonth,started } from '../lib/domain'
-import { db,details,history,latest,monthMeetings,nextMeetings,read,sessionsToRecord } from '../services/db'
+import { availableTeacherIds,db,details,history,latest,monthMeetings,nextMeetings,read,sessionsToRecord } from '../services/db'
 import type { Meeting,RecordEntry } from '../types'
 
 export const validId = (value: string) => /^[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}$/i.test(value)
@@ -160,7 +160,7 @@ export async function meetingForm(ctx: Context,id: string, month: string, day = 
   if (!instruments.length) return heading('Novo encontro')+
     empty('Nenhuma modalidade ativa','É necessário ter uma modalidade ativa para criar encontros.')+
     (ctx.admin ? link('administracao','Abrir administração','quiet') : link('escalas/'+month,'Voltar à escala','quiet'))
-  const eligibleIds = new Set(locked ? [] : read<string[]>(await db!.rpc('available_teacher_ids')))
+  const eligibleIds = new Set(locked ? [] : await availableTeacherIds())
   const eligible = ctx.teachers.filter(t=>eligibleIds.has(t.id))
   const assigned = ctx.teachers.find(t=>t.id===item?.teacher_id)
   const unavailable = assigned && !eligible.includes(assigned) ? [assigned] : []
