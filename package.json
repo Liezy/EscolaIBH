@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc --noEmit && vite build",
+    "android:sync": "npm run build && cap sync android",
     "preview": "vite preview",
     "test": "node --test tests/*.test.ts"
   },
@@ -12,11 +13,14 @@
     "node": "22.x"
   },
   "dependencies": {
+    "@capacitor/android": "^8.6.2",
+    "@capacitor/core": "^8.6.2",
     "@fontsource-variable/manrope": "^5.3.0",
     "@supabase/supabase-js": "^2.90.0",
     "lucide-static": "^0.563.0"
   },
   "devDependencies": {
+    "@capacitor/cli": "^8.6.2",
     "@tailwindcss/vite": "^4.1.18",
     "daisyui": "^5.8.1",
     "tailwindcss": "^4.1.18",

@@ -1,4 +1,5 @@
 import type { Session } from '@supabase/supabase-js'
+import { Capacitor } from '@capacitor/core'
 import '@fontsource-variable/manrope'
 import schoolLogo from './assets/escola-alianca.jpg'
 import { confirmAction,dismissConfirmation } from './components/confirmation'
@@ -204,7 +205,10 @@ app.addEventListener('submit', async event => {
         return
       }
       case 'recover': {
-        const {error} = await db.auth.resetPasswordForEmail(val(data,'email'),{redirectTo:location.origin+location.pathname})
+        const redirectTo = Capacitor.isNativePlatform()
+          ? 'https://escola-ibh.vercel.app/'
+          : location.origin+location.pathname
+        const {error} = await db.auth.resetPasswordForEmail(val(data,'email'),{redirectTo})
         if (error) throw error
         notify('Se houver uma conta com esse e-mail, você receberá um link para criar uma nova senha.')
         return
