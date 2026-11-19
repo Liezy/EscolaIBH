@@ -186,6 +186,41 @@
 }
 .feature-header > .btn:hover { background: #ffffff33; }
 .feature-header > .btn:focus-visible { outline-color: white; }
+.confirmation {
+  inset: 0;
+  margin: auto;
+  padding: 0;
+  width: min(28rem, calc(100% - 2rem));
+  max-height: calc(100dvh - 2rem);
+  overflow: auto;
+  border: 1px solid var(--color-base-300);
+  border-radius: var(--radius-box);
+  background: var(--color-base-100);
+  color: var(--color-base-content);
+  box-shadow: 0 24px 72px -16px #18142e65;
+}
+.confirmation::backdrop { background: #1e1b38a3; backdrop-filter: blur(3px); }
+body:has(.confirmation[open]) { overflow: hidden; }
+.confirmation-panel { display: grid; gap: 0.75rem; padding: 1.5rem; }
+.confirmation-icon {
+  display: grid;
+  place-items: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  border-radius: 0.875rem;
+  background: color-mix(in oklab, var(--color-error) 12%, white);
+  color: var(--color-error);
+}
+.confirmation-icon svg { width: 1.35rem; height: 1.35rem; }
+.confirmation-panel h2 { font-size: 1.3rem; font-weight: 800; }
+.confirmation-panel p { color: color-mix(in oklab, var(--color-base-content) 74%, white); }
+.confirmation-actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 0.625rem; margin-top: 0.625rem; }
+@media (max-width: 36rem) {
+  .confirmation { margin: auto auto calc(0.75rem + env(safe-area-inset-bottom)); }
+  .confirmation-panel { padding: 1.25rem; }
+  .confirmation-actions { display: grid; grid-template-columns: 1fr 1fr; }
+  .confirmation-actions .btn { min-width: 0; height: auto; padding-block: 0.6rem; white-space: normal; }
+}
 @media (min-width: 56rem) {
   .topbar .mobile-admin { display: none; }
 }
@@ -196,6 +231,7 @@
 }
 @media (prefers-reduced-motion: no-preference) {
   .screen-enter, .login-card { animation: screen-enter 180ms ease-out both; }
+  .confirmation[open] { animation: screen-enter 180ms ease-out both; }
   :is(.mobile-dock a,.desktop-nav a,a.list-row,.btn) { transition: background-color 150ms, color 150ms, border-color 150ms, transform 150ms; }
   :is(.mobile-dock a,a.list-row,.btn):active { transform: scale(0.98); }
 }

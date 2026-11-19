@@ -1,6 +1,7 @@
 import type { Session } from '@supabase/supabase-js'
 import '@fontsource-variable/manrope'
 import schoolLogo from './assets/escola-alianca.jpg'
+import { confirmAction,dismissConfirmation } from './components/confirmation'
 import { action,esc,field,icon,input,link,val } from './components/ui'
 import type { Context } from './lib/context'
 import { schoolNow } from './lib/domain'
@@ -98,6 +99,7 @@ async function pageContent(ctx: Context) {
   return '<h1>Página indisponível</h1>'+link('inicio','Voltar ao início')
 }
 async function render() {
+  dismissConfirmation()
   const id = ++renderId
   const lastView = app.querySelector<HTMLElement>('#view')
   if (lastView) lastView.inert=true
@@ -168,11 +170,17 @@ app.addEventListener('submit', async event => {
   if (!db || form.dataset.busy) return
   const data = new FormData(form)
   const op = form.dataset.op
-  if (form.dataset.confirm && !confirm(form.dataset.confirm)) return
-  if (op==='meeting' && val(data,'status')==='canceled' && !confirm('Cancelar este encontro?')) return
-  if (op==='student' && form.querySelector('[data-existing]:not(:checked)') &&
-      !confirm('Remover os vínculos com as modalidades desmarcadas?')) return
   const button = form.querySelector<HTMLButtonElement>('button[type="submit"]')
+  const requestId = renderId
+  if (form.dataset.confirm) {
+    const label = button?.textContent?.trim() || 'Confirmar'
+    if (!await confirmAction({title:label,description:form.dataset.confirm,label})) return
+  } else if (op==='meeting' && val(data,'status')==='canceled' && form.dataset.originalStatus!=='canceled') {
+    if (!await confirmAction({title:'Cancelar encontro',description:'O encontro ficará marcado como cancelado na escala.',label:'Cancelar encontro'})) return
+  } else if (op==='student' && form.querySelector('[data-existing]:not(:checked)')) {
+    if (!await confirmAction({title:'Remover vínculos',description:'As modalidades desmarcadas serão removidas do cadastro do aluno.',label:'Remover vínculos'})) return
+  }
+  if (!form.isConnected || requestId!==renderId || form.dataset.busy) return
   form.dataset.busy='true'
   if (button) {
     button.disabled=true
@@ -181,7 +189,6 @@ app.addEventListener('submit', async event => {
   form.setAttribute('aria-busy','true')
   notify('',true)
   notify('')
-  const requestId = renderId
   try {
     let target = route().join('/')
     let feedbackText = 'Alterações salvas.'

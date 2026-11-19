@@ -38,7 +38,7 @@ export async function studentForm(ctx: Context,id: string) {
           ${field('Situação',select('status_'+i.id,options(enrollmentStatuses.map(key=>({id:key,name:statuses[key]})),enrollment?.status),enrollment?'':'disabled'))}</div></div>`
       }).join('')}</div></fieldset>
       <div>${action('Salvar aluno')}</div>
-    </form>`+(student ? `<div class="section">${deleteForm('delete-student',student.id,'Remover aluno','Remover este aluno e todos os seus vínculos com modalidades?')}</div>` : '')
+    </form>`+(student ? `<div class="section">${deleteForm('delete-student',student.id,'Remover aluno','O cadastro do aluno e seus vínculos com modalidades serão apagados.')}</div>` : '')
 }
 export async function saveStudent(data: FormData) {
   const id = val(data,'id')
@@ -64,7 +64,7 @@ export async function adminPage(ctx: Context) {
     }).join('') || empty('Nenhum professor com conta vinculada','Use Novo professor para cadastrar a equipe.')}</div>
     ${legacyTeachers.length ? `<details class="card section"><summary>Cadastros antigos sem conta (${legacyTeachers.length})</summary>
       <div class="list mt-3">${legacyTeachers.map(t=>`<a class="list-row" href="#editar-professor/${esc(t.id)}"><strong class="row-copy">${esc(t.name)}</strong><span>Vincular conta</span></a>`).join('')}</div>
-      <form class="mt-3" data-op="remove-unlinked-teachers" data-confirm="Excluir todos os cadastros de professores sem conta que não têm encontros ou registros vinculados?">
+      <form class="mt-3" data-op="remove-unlinked-teachers" data-confirm="Serão apagados os cadastros de professores sem conta e sem encontros ou registros associados.">
         ${action('Excluir cadastros sem uso','danger')}</form>
       <p class="meta">Cadastros vinculados a encontros ou registros são preservados.</p></details>` : ''}
     </section>

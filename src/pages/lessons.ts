@@ -124,7 +124,7 @@ export async function meetingPage(ctx: Context,id: string, editRecord = false) {
       ${!record || editing ? editor : recordText(record)}
       ${record && !editing ? `<div class="record-actions">
         ${canEdit ? link(sessionLink(meeting)+'/editar-registro','Editar registro') : ''}
-        ${ctx.admin ? deleteForm('delete-record',record.id,'Excluir registro','Excluir o conteúdo, as observações e as recomendações desta aula?') : ''}
+        ${ctx.admin ? deleteForm('delete-record',record.id,'Excluir registro','O conteúdo, as observações e as recomendações desta aula serão apagados.') : ''}
       </div><p class="meta">Atualizado em ${new Intl.DateTimeFormat('pt-BR',{dateStyle:'short',timeStyle:'short',timeZone:'America/Sao_Paulo'}).format(new Date(record.updated_at))}</p>` : ''}</section>` : `<p class="section muted">${unavailable}</p>`}
     ${previous ? (record || canCreate ? `<details class="card section"><summary>Registro anterior</summary>${earlier}</details>`
       : `<section class="card section continuation"><h2>Registro anterior</h2>${earlier}</section>`)
@@ -166,7 +166,7 @@ export async function meetingForm(ctx: Context,id: string, month: string, day = 
   const unavailable = assigned && !eligible.includes(assigned) ? [assigned] : []
   return link(item ? sessionLink(item) : 'escalas/'+month+(selectedDay ? '/'+selectedDay : ''),item ? 'Voltar ao encontro' : 'Voltar à escala','quiet')+
     heading(item ? 'Editar encontro' : 'Novo encontro')+
-    `<form class="card fields" data-op="meeting">
+    `<form class="card fields" data-op="meeting" data-original-status="${esc(item?.status)}">
     <input type="hidden" name="id" value="${id}">
     <div class="form-grid">
       ${field('Data',input('date',item?.date ?? (selectedDay || (today.startsWith(month+'-') ? today : '')),'required type="date"'))}
@@ -180,7 +180,7 @@ export async function meetingForm(ctx: Context,id: string, month: string, day = 
       ${field('Situação',select('status',options(['planned','completed','canceled'].map(key=>({id:key,name:statuses[key as Meeting['status']]})),item?.status),'required'))}`}
     </div>${locked ? '<p class="meta">Com um registro de aula salvo, apenas a data e o horário podem ser alterados.</p>' : ''}<div>${action('Salvar encontro')}</div></form>`+
     (item ? `<div class="section">${locked ? '<p class="meta">Para excluir o encontro, exclua primeiro o registro da aula.</p>' :
-      deleteForm('delete-meeting',item.id,'Excluir encontro','Excluir este encontro da escala?')}</div>` : '')
+      deleteForm('delete-meeting',item.id,'Excluir encontro','Este encontro será removido da escala do mês.')}</div>` : '')
 }
 
 export async function saveMeeting(data: FormData) {
