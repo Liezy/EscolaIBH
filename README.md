@@ -2,7 +2,7 @@
 
 # Escola Aliança
 
-O aplicativo da equipe da escola de música da Igreja Batista Horizonte. Professores e administradores usam o sistema para organizar a escala, registrar aulas e acompanhar os alunos.
+O aplicativo da equipe da escola de música da Igreja Batista Hebrom. Professores e administradores usam o sistema para organizar a escala, registrar aulas e acompanhar os alunos.
 
 **[Abrir o site](https://escola-ibh.vercel.app)** · **[Baixar o APK para Android](https://github.com/Liezy/EscolaIBH/releases)**
 
