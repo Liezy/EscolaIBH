@@ -38,6 +38,10 @@
 }
 
 @layer base {
+  :root {
+    --app-safe-top: var(--safe-area-inset-top, env(safe-area-inset-top, 0px));
+    --app-safe-bottom: var(--safe-area-inset-bottom, env(safe-area-inset-bottom, 0px));
+  }
   body { @apply antialiased; background: var(--color-base-200); font-family: "Manrope Variable", system-ui, sans-serif; }
   h1, h2, h3 { @apply font-semibold tracking-tight; overflow-wrap: anywhere; }
   h1 { @apply text-3xl font-extrabold sm:text-4xl; line-height: 1.1; letter-spacing: -0.055em; }
@@ -52,7 +56,7 @@
   .icon svg { width: 1.2em; height: 1.2em; }
   .layout { @apply min-h-dvh; }
   .school-logo { @apply block size-28 shrink-0 rounded-xl object-contain; }
-  .topbar { @apply sticky top-0 z-20 border-b border-base-300/80 bg-base-100/90 backdrop-blur-lg; }
+  .topbar { @apply sticky top-0 z-20 border-b border-base-300/80 bg-base-100/90 backdrop-blur-lg; padding-top: var(--app-safe-top); }
   .topbar-inner { @apply mx-auto flex min-h-17 max-w-7xl items-center justify-between gap-3 px-4 sm:px-7; }
   .topbar-actions { @apply flex shrink-0 items-center gap-1; }
   .topbar-actions .btn { @apply text-base-content/70; }
@@ -65,13 +69,13 @@
   .desktop-nav a:hover, .desktop-nav a[aria-current] { @apply bg-secondary text-secondary-content; }
   .mobile-dock {
     @apply fixed inset-x-3 z-30 mx-auto grid max-w-sm grid-cols-4 gap-1 rounded-3xl border border-base-300/90 bg-base-100/95 p-1.5 backdrop-blur-xl;
-    bottom: calc(0.65rem + env(safe-area-inset-bottom));
+    bottom: calc(0.65rem + var(--app-safe-bottom));
     box-shadow: 0 12px 32px -14px #201b5149;
   }
   .mobile-dock a { @apply grid min-h-12 min-w-0 place-content-center justify-items-center gap-0.5 rounded-2xl text-[0.69rem] font-bold text-base-content/70; }
   .mobile-dock .icon { @apply text-[1.05rem]; }
   .mobile-dock a[aria-current] { @apply bg-secondary text-secondary-content; }
-  #content { @apply mx-auto w-full max-w-6xl px-4 pt-7 sm:px-7 md:pt-10; padding-bottom: calc(6rem + env(safe-area-inset-bottom)); }
+  #content { @apply mx-auto w-full max-w-6xl px-4 pt-7 sm:px-7 md:pt-10; padding-bottom: calc(6rem + var(--app-safe-bottom)); }
   @media (min-width: 56rem) {
     .desktop-nav { display: flex; }
     .mobile-dock { display: none; }
@@ -159,7 +163,11 @@
   .agenda-group { @apply mb-3; }
   .agenda-group h3 { @apply mb-2; }
 
-  .login { @apply grid min-h-dvh place-items-center p-4; background: radial-gradient(ellipse at 50% 0%, #e9e5fb, transparent 55%); }
+  .login {
+    @apply grid min-h-dvh place-items-center px-4;
+    padding-block: max(1rem, var(--app-safe-top)) max(1rem, var(--app-safe-bottom));
+    background: radial-gradient(ellipse at 50% 0%, #e9e5fb, transparent 55%);
+  }
   .login .login-card { @apply w-full max-w-md p-5 sm:p-7; box-shadow: 0 20px 55px -28px #33257344; }
   .login .brand-banner { @apply grid place-items-center; }
   .login .school-logo { @apply size-24; }
@@ -216,7 +224,7 @@ body:has(.confirmation[open]) { overflow: hidden; }
 .confirmation-panel p { color: color-mix(in oklab, var(--color-base-content) 74%, white); }
 .confirmation-actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 0.625rem; margin-top: 0.625rem; }
 @media (max-width: 36rem) {
-  .confirmation { margin: auto auto calc(0.75rem + env(safe-area-inset-bottom)); }
+  .confirmation { margin: auto auto calc(0.75rem + var(--app-safe-bottom)); }
   .confirmation-panel { padding: 1.25rem; }
   .confirmation-actions { display: grid; grid-template-columns: 1fr 1fr; }
   .confirmation-actions .btn { min-width: 0; height: auto; padding-block: 0.6rem; white-space: normal; }
