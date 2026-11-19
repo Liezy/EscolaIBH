@@ -60,6 +60,21 @@ npm run build
 
 Após aplicar as migrações, execute [fluxos.sql](supabase/tests/fluxos.sql) em um projeto de desenvolvimento. O script usa uma transação com rollback. Verifique uma sessão de administrador e outra de professor no navegador.
 
+## Gerar o APK Android
+
+O projeto Android em `android/` usa Capacitor e incorpora o mesmo frontend Vite. Ele usa o Supabase configurado em `.env.local` e as mesmas credenciais do site.
+
+Com Node.js, JDK 21 e Android SDK 36 configurados, execute no PowerShell:
+
+```powershell
+npm ci
+npm run android:sync
+Set-Location android
+.\gradlew.bat :app:assembleDebug
+```
+
+O APK de teste fica em `android/app/build/outputs/apk/debug/app-debug.apk`. Rode `npm run android:sync` antes de recompilar depois de editar o frontend. A recuperação de senha por e-mail iniciada no aplicativo abre a versão web publicada.
+
 ## Publicar na Vercel
 
 Envie o código para um repositório privado no GitHub, mantendo `.env.local` fora do Git. Na Vercel, importe o repositório, selecione Vite e Node.js 22.x, configure as duas variáveis de ambiente e inicie o deploy quando autorizado. O build é `npm run build` e a saída é `dist`. A navegação por fragmentos mantém as rotas funcionando após recarregar a página. Defina a URL da aplicação como **Site URL** nas configurações de Auth do Supabase. [Vite na Vercel](https://vercel.com/docs/frameworks/frontend/vite)
